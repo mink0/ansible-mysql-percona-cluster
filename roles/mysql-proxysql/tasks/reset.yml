@@ -1,0 +1,8 @@
+---
+
+- name: delete database file
+  file:
+    path: /var/lib/proxysql/proxysql.db
+    state: absent
+  notify: restart mysql proxy
+  tags: reset

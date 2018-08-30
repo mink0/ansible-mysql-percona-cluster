@@ -1,0 +1,31 @@
+---
+
+- name: install chrony package
+  yum:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - chrony
+    - ntpdate
+  tags: install
+
+- name: set ntp timezone
+  timezone:
+    name: "{{ ntp_timezone }}"
+  tags: configure
+
+- name: configure chrony
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart chronyd
+  tags: configure
+
+- name: ensure chronyd service is enabled and started
+  service:
+    name: chronyd
+    enabled: yes
+    state: started

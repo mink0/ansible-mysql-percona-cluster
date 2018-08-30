@@ -1,0 +1,8 @@
+---
+
+- name: restart mysql orchestrator
+  systemd:
+    name: orchestrator
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

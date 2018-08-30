@@ -1,0 +1,27 @@
+# https://github.com/sysown/proxysql
+# https://github.com/sysown/proxysql/wiki
+---
+
+- name: add proxysql repository
+  yum_repository:
+    name: proxysql
+    description: ProxySQL repository
+    baseurl: http://repo.proxysql.com/ProxySQL/proxysql-1.4.x/centos/$releasever
+    gpgkey: http://repo.proxysql.com/ProxySQL/repo_pub_key
+    gpgcheck: yes
+
+- name: install proxysql
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - proxysql
+
+- name: open firewall
+  firewalld:
+    port: "{{ item }}/tcp"
+    state: enabled
+    permanent: yes
+    immediate: yes
+  with_items:
+    - "{{ mysql_proxy_port }}"
+    - "{{ mysql_proxy_admin_web_port }}"

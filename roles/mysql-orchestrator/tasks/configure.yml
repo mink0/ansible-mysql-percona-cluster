@@ -1,0 +1,49 @@
+---
+
+- name: install orchestartor config
+  template:
+    src: orchestrator.conf.json
+    dest: /etc/orchestrator.conf.json
+  notify: restart mysql orchestrator
+
+- name: setup orchestrator service
+  template:
+    src: systemd/orchestrator.service
+    dest: /etc/systemd/system/orchestrator.service
+
+- name: create orchestrator user at {{ mysql_repl_master_ip }}
+  mysql_user:
+    name: "{{ mysql_orch_user }}"
+    host: "{{ ansible_default_ipv4.address | default('%') }}"
+    password: "{{ mysql_orch_password }}"
+    priv: '*.*:SUPER,PROCESS,REPLICATION SLAVE,RELOAD/mysql.slave_master_info:SELECT'
+    state: present
+  delegate_to: "{{ mysql_repl_master_ip }}"
+  when: mysql_repl_master_ip is defined
+
+- name: setup proxysql integration
+  when: mysql_proxy_host != ''
+  block:
+    - name: prepare bin directory
+      file:
+        path: /usr/local/orchestrator/bin
+        state: directory
+
+    - name: setup orchestrator bin scripts
+      template:
+        src: "{{ item }}"
+        dest: /usr/local/orchestrator/{{ item }}
+        mode: 0750
+      with_items:
+        - bin/pre-failover.sh
+        - bin/post-failover.sh
+
+- name: ensure orchestrator is started
+  systemd:
+    name: orchestrator
+    state: started
+
+- name: discover cluster master at {{ mysql_repl_master_ip }}
+  command: /usr/local/orchestrator/orchestrator -c discover -i {{ mysql_repl_master_ip }}
+  when: mysql_repl_master_ip is defined
+  tags: reset

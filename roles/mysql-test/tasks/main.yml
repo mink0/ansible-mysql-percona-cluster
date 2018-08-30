@@ -1,0 +1,25 @@
+---
+
+- name: create test db ({{ mysql_test_db }})
+  mysql_db:
+    name: "{{ mysql_test_db }}"
+  when: "'mysql-master' in group_names"
+
+- name: create test table ({{ mysql_test_table }}) for tests
+  command: mysql {{ mysql_test_db }} -e \
+    "CREATE TABLE IF NOT EXISTS {{ mysql_test_table }} ( data VARCHAR(256) )"
+  when: "'mysql-master' in group_names"
+
+- include_tasks: cluster-test.yml
+  tags: cluster-test
+
+- include_tasks: proxy-test.yml
+  tags: proxy-test
+  when: mysql_proxy_host != ''
+
+# cleaning
+- name: remove test db ({{ mysql_test_db }})
+  mysql_db:
+    name: "{{ mysql_test_db }}"
+    state: absent
+  when: "'mysql-master' in group_names"

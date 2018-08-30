@@ -1,0 +1,44 @@
+---
+
+- name: setup my.cnf configuration
+  template:
+    src: etc/my.cnf.j2
+    dest: /etc/my.cnf
+    owner: mysql
+    group: mysql
+  notify: restart percona mysql server
+
+- name: ensure mysql service is started
+  systemd:
+    name: mysql
+    state: started
+
+- name: remove anonymous mysql users and test database
+  command: >
+    mysql -NBe
+      "DELETE FROM mysql.user WHERE user='';
+      DROP DATABASE IF EXISTS test;
+      FLUSH PRIVILEGES;"
+  changed_when: false
+
+- name: create mysql databases
+  mysql_db:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ mysql_databases }}"
+
+- name: create mysql users with grants
+  mysql_user:
+    name: "{{ item.username }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.grants | default('*.*:USAGE') }}"
+    host: "{{ item.host | default('%') }}"
+    state: present
+  with_items: "{{ mysql_users }}"
+
+- name: open firewall
+  firewalld:
+    port: 3306/tcp
+    state: enabled
+    permanent: true
+    immediate: yes

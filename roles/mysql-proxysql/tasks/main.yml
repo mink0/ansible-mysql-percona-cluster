@@ -1,0 +1,18 @@
+# https://github.com/sysown/proxysql
+# https://github.com/sysown/proxysql/wiki
+---
+
+- include_tasks: install.yml
+  tags: install
+
+- include_tasks: reset.yml
+  tags: reset
+
+- include_tasks: configure.yml
+  tags: configure
+
+- name: ensure proxysql is started
+  systemd:
+    name: proxysql
+    state: started
+    enabled: yes

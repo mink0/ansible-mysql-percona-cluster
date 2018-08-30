@@ -1,0 +1,14 @@
+# https://github.com/github/orchestrator
+---
+
+- include_tasks: install.yml
+  tags: install
+
+- include_tasks: reset.yml
+  tags: reset
+
+- include_tasks: configure.yml
+  tags: configure
+
+- name: flush handlers to apply config changes
+  meta: flush_handlers

@@ -1,0 +1,43 @@
+{
+  "Debug": true,
+  "EnableSyslog": false,
+  "ListenAddress": "{{ mysql_orch_host }}:{{ mysql_orch_port }}",
+  "MySQLTopologyUser": "{{ mysql_orch_user }}",
+  "MySQLTopologyPassword": "{{ mysql_orch_password }}",
+  "BackendDB": "sqlite",
+  "SQLite3DataFile": "/usr/local/orchestrator/orchestrator.sqlite3",
+  "AuditLogFile": "",
+  "AuditToSyslog": false,
+  "RemoveTextFromHostnameDisplay": ".moscow.eurochem.ru:3306",
+  "ReadOnly": false,
+  "AuthenticationMethod": "",
+  "HTTPAuthUser": "{{ mysql_orch_web_user }}",
+  "HTTPAuthPassword": "{{ mysql_orch_web_password }}",
+  "AuthUserHeader": "",
+  "DataCenterPattern": "[.]([^.]+)[.][^.]+[.]eurochem[.]ru",
+  "PhysicalEnvironmentPattern": "[.]([^.]+[.][^.]+)[.]eurochem[.]ru",
+  "ApplyMySQLPromotionAfterMasterFailover": true
+
+  {% if mysql_orch_auto_recover_enable %}
+  ,
+  "RecoverMasterClusterFilters": [ "*" ],
+  "FailMasterPromotionIfSQLThreadNotUpToDate": true,
+  "RecoveryPeriodBlockSeconds": 3600
+  {% endif %}
+
+  {% if mysql_proxy_host != '' %}
+  ,
+  "PreGracefulTakeoverProcesses": [
+    "echo 'Planned takeover about to take place on {failureCluster}. Master will switch to read_only.' &>> /usr/local/orchestrator/recovery.log"
+  ],
+  "PostGracefulTakeoverProcesses": [
+    "echo 'Planned takeover complete!' &>> /usr/local/orchestrator/recovery.log"
+  ],
+  "PreFailoverProcesses": [
+    "/usr/local/orchestrator/bin/pre-failover.sh &>> /usr/local/orchestrator/recovery.log"
+  ],
+  "PostFailoverProcesses": [
+    "/usr/local/orchestrator/bin/post-failover.sh &>> /usr/local/orchestrator/recovery.log"
+  ]
+  {% endif %}
+}

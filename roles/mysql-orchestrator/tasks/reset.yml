@@ -1,0 +1,12 @@
+---
+
+- name: delete database files
+  file:
+    path: "{{ item }}"
+    state: absent
+  notify: restart mysql orchestrator
+  with_items:
+    - /usr/local/orchestrator/orchestrator.sqlite3
+    - /usr/local/orchestrator/orchestrator.sqlite3-shm
+    - /usr/local/orchestrator/orchestrator.sqlite3-wal
+  tags: reset

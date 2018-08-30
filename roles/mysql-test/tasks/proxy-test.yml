@@ -1,0 +1,53 @@
+---
+
+- set_fact:
+    sample: "proxy-{{ ansible_date_time.iso8601_micro }}"
+  when: "'mysql-master' in group_names"
+  run_once: yes
+
+- name: create mysql test user {{ mysql_test_user.username }} at master
+  mysql_user:
+    name: "{{ mysql_test_user.username }}"
+    password: "{{ mysql_test_user.password }}"
+    priv: "{{ mysql_test_user.grants }}"
+    host: '%'
+  when: "'mysql-master' in group_names"
+
+- name: create mysql test user {{ mysql_test_user.username }} at proxy
+  command: mysql -P{{mysql_proxy_port}} -e \
+    "REPLACE INTO mysql_users(username,password) VALUES ('{{ mysql_test_user.username }}','{{ mysql_test_user.password }}');
+    LOAD MYSQL USERS TO RUNTIME;"
+  delegate_to: "{{ mysql_proxy_host }}"
+  when: "'mysql-master' in group_names"
+  tags: test-proxy
+
+- name: write sample to proxy ({{ sample }})
+  command: mysql -h127.0.0.1 -P{{mysql_proxy_port}} -u{{mysql_test_user.username}} -p{{mysql_test_user.password}} {{ mysql_test_db }} -e \
+    "INSERT INTO {{ mysql_test_table }} values ('{{ sample }}')"
+  delegate_to: "{{ mysql_proxy_host }}"
+  when: "'mysql-master' in group_names"
+  tags: test-proxy
+
+- name: read sample ({{ sample }}) from every node
+  command: mysql {{ mysql_test_db }} -NBe \
+    "SELECT count(data) FROM {{ mysql_test_table }} WHERE data='{{ sample }}'"
+  register: result
+  until: result.stdout == "1"
+  retries: 10
+  tags: test-proxy
+
+# cleaning
+- name: remove mysql test user ({{ mysql_test_user.username }}) from mysql master
+  mysql_user:
+    name: "{{ mysql_test_user.username }}"
+    host: '%'
+    state: absent
+  when: "'mysql-master' in group_names"
+
+- name: remove mysql test user ({{ mysql_test_user.username }}) from proxy
+  command: mysql -P{{mysql_proxy_port}} -e \
+    "DELETE FROM mysql_users WHERE username='{{ mysql_test_user.username }}' AND password='{{ mysql_test_user.password }}';
+    LOAD MYSQL USERS TO RUNTIME;"
+  delegate_to: "{{ mysql_proxy_host }}"
+  when: "'mysql-master' in group_names"
+  tags: test-proxy

@@ -1,0 +1,7 @@
+---
+
+- name: restart percona mysql server
+  systemd:
+    name: mysql
+    state: restarted
+    enabled: yes

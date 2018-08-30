@@ -1,0 +1,7 @@
+---
+
+ntp_servers:
+  - '10.116.12.10'
+  - '10.116.12.11'
+
+ntp_timezone: Europe/Moscow

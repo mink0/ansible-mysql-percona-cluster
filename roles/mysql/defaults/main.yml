@@ -1,0 +1,57 @@
+---
+
+# Mysql users to create
+mysql_users: []
+
+# Mysql databases to create
+mysql_databases: []
+
+mysql_repo: https://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+mysql_version: 56
+mysql_port: 3306
+mysql_bind_address: 0.0.0.0
+mysql_max_connections: 1000
+
+# Default encoding
+mysql_character_set_server: utf8
+mysql_collation_server: utf8_general_ci
+
+# Memory settings (default values optimized for ~4GB RAM).
+mysql_key_buffer_size: 1G
+mysql_max_allowed_packet: 64M
+mysql_table_open_cache: 512
+mysql_sort_buffer_size: 4M
+mysql_read_buffer_size: 4M
+mysql_join_buffer_size: 8M
+mysql_read_rnd_buffer_size: 8M
+mysql_thread_cache_size: 16
+mysql_query_cache_size: 128M
+mysql_thread_concurrency: 8
+# set buffer_pool_size up to 80% of RAM
+mysql_innodb_buffer_pool_size: 3G
+# set mysql_innodb_log_file_size to 25% of buffer pool size.
+mysql_innodb_log_file_size: 750M
+mysql_innodb_additional_mem_pool_size: 20M
+mysql_innodb_log_buffer_size: 16M
+mysql_innodb_flush_log_at_trx_commit: 2
+
+# Transaction mode
+mysql_transaction_isolation: READ-COMMITTED
+
+# Mysqldump settings
+mysql_mysqldump_max_allowed_packet: "64M"
+
+# Replication settings
+# set `mysql_repl_enable` to false to disable replication setup
+mysql_repl_enable: "{{ true if mysql_repl_master_ip !='' else false }}"
+# `mysql_repl_master_ip` is used to setup replication on process on a slave
+mysql_repl_master_ip:
+ "{{ hostvars[groups['mysql-master'][0]].ansible_default_ipv4.address if groups['mysql-master'] is defined else '' }}"
+# override `mysql_repl_source` to take a backup from a slave instead of master
+mysql_repl_source: "{{ mysql_repl_master_ip }}"
+mysql_repl_user: repl
+mysql_repl_password: password
+mysql_repl_iplist: "{{ groups['mysql'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
+mysql_repl_server_id: "{{ ansible_default_ipv4.address.split('.')[-1] }}"
+mysql_repl_expire_logs_days: 3
+mysql_repl_backup_path: /tmp/mysql-master-backup

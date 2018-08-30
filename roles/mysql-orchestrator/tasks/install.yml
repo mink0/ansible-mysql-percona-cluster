@@ -1,0 +1,21 @@
+---
+# https://github.com/github/orchestrator
+
+- name: add orchestrator repository
+  yum_repository:
+    name: github_orchestrator
+    description: Github orchestrator repo
+    baseurl: https://packagecloud.io/github/orchestrator/el/$releasever/$basearch
+
+- name: install orchestrator
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - orchestrator
+
+- name: open firewall
+  firewalld:
+    port: "{{ mysql_orch_port }}/tcp"
+    state: enabled
+    permanent: true
+    immediate: yes

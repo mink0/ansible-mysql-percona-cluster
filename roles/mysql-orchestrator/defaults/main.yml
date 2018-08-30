@@ -1,0 +1,15 @@
+---
+
+mysql_orch_path: /usr/local/orchestrator
+mysql_orch_user: orchestrator
+mysql_orch_password: password
+mysql_orch_host:
+mysql_orch_port: 3000
+mysql_orch_web_user:
+mysql_orch_web_password:
+
+mysql_orch_auto_recover_enable: yes
+
+# orchestrator is able to setup proxysql after failover process
+mysql_proxy_host:
+  "{{ hostvars[groups['mysql-proxy'][0]].ansible_default_ipv4.address if groups['mysql-proxy'] is defined else '' }}"

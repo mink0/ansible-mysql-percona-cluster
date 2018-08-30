@@ -1,0 +1,29 @@
+---
+
+- name: setup proxysql config
+  template:
+    src: proxysql.cnf
+    dest: /etc/proxysql.cnf
+  register: proxysql_config
+
+- name: delete database file for config to be re-initialised
+  file:
+    path: /var/lib/proxysql/proxysql.db
+    state: absent
+  when: proxysql_config.changed
+  notify: restart mysql proxy
+
+- name: create my.cnf for proxysql admin login
+  template:
+    src: my.cnf
+    dest: /root/.my.cnf
+
+- name: create {{ mysql_proxy_monitor_user }} user at master ({{ mysql_repl_master_ip }})
+  mysql_user:
+    name: "{{ mysql_proxy_monitor_user }}"
+    host: "{{ ansible_default_ipv4.address | default('%') }}"
+    password: "{{ mysql_proxy_monitor_password }}"
+    priv: '*.*:USAGE,REPLICATION CLIENT'
+    state: present
+  delegate_to: "{{ mysql_repl_master_ip }}"
+  when: mysql_repl_master_ip is defined

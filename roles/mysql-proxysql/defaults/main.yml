@@ -1,0 +1,27 @@
+---
+# proxy admin
+mysql_proxy_admin_user: root
+mysql_proxy_admin_password:
+mysql_proxy_admin_host: 0.0.0.0
+mysql_proxy_admin_port: 6032
+
+# web stats
+mysql_proxy_admin_web_port: 6080
+mysql_proxy_stats_user: stats
+mysql_proxy_stats_password:
+
+
+# proxy listener
+# mysql_proxy_user: proxysql
+# mysql_proxy_password: password
+mysql_proxy_host: 0.0.0.0
+mysql_proxy_port: 3306
+
+# proxy config
+mysql_proxy_max_connections: 2048
+mysql_proxy_monitor_user: proxysqlmon
+mysql_proxy_monitor_password: password
+mysql_proxy_max_replication_lag: 0
+
+# register users to access mysql backend
+mysql_users: []

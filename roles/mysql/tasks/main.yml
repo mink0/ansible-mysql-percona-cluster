@@ -1,0 +1,26 @@
+---
+
+- include_tasks: install.yml
+  tags: install
+
+- include_tasks: configure.yml
+  tags: configure
+
+- block:
+    - import_tasks: replication.yml
+
+    - import_tasks: replication-master.yml
+      when: "'mysql-master' in group_names"
+      tags: master
+
+    # replication could be seeded from one of the slaves
+    - import_tasks: replication-slave.yml
+      when: "('mysql-slave' in group_names) and
+        (hostvars[inventory_hostname]['ansible_default_ipv4']['address'] != mysql_repl_source)"
+      tags: slave
+
+  when: mysql_repl_enable
+  tags: replication
+
+- name: flush handlers to apply config changes
+  meta: flush_handlers

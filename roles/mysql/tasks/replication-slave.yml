@@ -1,0 +1,82 @@
+---
+
+- name: slave | prepare destination for the backup
+  file:
+    path: "{{ mysql_repl_backup_path }}.tgz"
+    state: absent
+
+# use push to use resolved user@ip from `delegate_to` as dest
+- name: slave | download database backup from {{ mysql_repl_source }}
+  become: no
+  synchronize:
+    mode: push
+    src: "{{ mysql_repl_backup_path }}.tgz"
+    dest: "{{ mysql_repl_backup_path }}.tgz"
+    recursive: yes
+    checksum: yes
+  delegate_to: "{{ mysql_repl_source }}"
+
+- name: slave | stop mysql server
+  systemd:
+    name: mysqld
+    state: stopped
+
+- name: slave | backup /var/lib/mysql directory to /var/lib/mysql-data-old.tgz
+  archive:
+    path: /var/lib/mysql
+    dest: /var/lib/mysql-data-old.tgz
+
+- name: slave | delete /var/lib/mysql directory
+  file:
+    path: /var/lib/mysql/
+    state: absent
+
+- name: slave | recreate /var/lib/mysql directory
+  file:
+    path: /var/lib/mysql/
+    state: directory
+    owner: mysql
+    group: mysql
+
+- name: slave | extract {{ mysql_repl_backup_path }}.tgz into /var/lib/mysql
+  unarchive:
+    src: "{{ mysql_repl_backup_path }}.tgz"
+    dest: /var/lib/mysql
+    owner: mysql
+    group: mysql
+    remote_src: yes
+
+- name: slave | extract executed GTID from backup
+  shell: awk '{print $NF}' < /var/lib/mysql/xtrabackup_binlog_info
+  register: ps
+
+- set_fact:
+    mysql_master_gtid: "{{ ps.stdout | trim }}"
+
+- name: slave | start mysql server
+  systemd:
+    name: mysqld
+    state: started
+
+- name: slave | purge slave binlog before GTID {{ mysql_master_gtid }}
+  command: mysql -NBe 'SET GLOBAL gtid_purged="{{ mysql_master_gtid }}"'
+
+- name: slave | configure replication from {{ mysql_repl_master_ip }}
+  mysql_replication:
+    mode: changemaster
+    master_auto_position: yes
+    master_host: "{{ mysql_repl_master_ip }}"
+    master_user: "{{ mysql_repl_user }}"
+    master_password: "{{ mysql_repl_password }}"
+
+- name: slave | start replication process
+  mysql_replication:
+    mode: startslave
+
+- name: slave | check replication status
+  mysql_replication:
+    mode: getslave
+  ignore_errors: yes
+  register: slave
+  retries: 5
+  until: slave.Is_Slave and slave.Master_UUID != "" and slave.Slave_IO_Running

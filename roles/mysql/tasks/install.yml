@@ -1,0 +1,33 @@
+---
+
+- name: install Percona MySQL repository
+  yum:
+    name: "{{ mysql_repo }}"
+    state: present
+
+- name: install Percona MySQL client
+  yum:
+    name: Percona-Server-client-{{ mysql_version }}
+    state: present
+
+- name: install Percona MySQL server
+  yum:
+    name: Percona-Server-server-{{ mysql_version }}
+    state: present
+  notify: restart percona mysql server
+
+- name: install packages for mysql_db, mysql_user module
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-devel
+    - MySQL-python
+
+- name: prepare log dir
+  file:
+    state: directory
+    path: /var/log/mysql
+    owner: mysql
+    group: mysql
+    mode: 0755

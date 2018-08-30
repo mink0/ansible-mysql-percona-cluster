@@ -1,0 +1,38 @@
+---
+
+- name: master | create mysql users for replication on the master
+  mysql_user:
+    name: "{{ mysql_repl_user }}"
+    host: "{{ item }}"
+    password: "{{ mysql_repl_password }}"
+    priv: '*.*:REPLICATION SLAVE,REPLICATION CLIENT'
+    state: present
+  loop: "{{ mysql_repl_iplist }}"
+
+- name: master | check slave status on the master
+  mysql_replication:
+    mode: getslave
+  ignore_errors: yes
+  register: slave
+
+- name: master | ensure slave is not running on the master
+  when: slave.Is_Slave is defined and slave.Is_Slave
+  block:
+    - name: stop slave on the master
+      mysql_replication:
+        mode: stopslave
+
+    - name: reset slave configuration on the master
+      mysql_replication:
+        mode: resetslaveall
+
+- name: master | remove read_only from master
+  mysql_variables:
+    variable: read_only
+    value: 0
+
+- name: master | create full database backup from {{ mysql_repl_source }}
+  command: /usr/bin/mysql-fullbackup.sh
+  environment:
+    BACKUP_PATH: "{{ mysql_repl_backup_path }}"
+  delegate_to: "{{ mysql_repl_source }}"

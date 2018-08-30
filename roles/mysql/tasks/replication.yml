@@ -1,0 +1,9 @@
+---
+
+- name: prepare backup script
+  template:
+    src: bin/mysql-fullbackup.sh.j2
+    dest: /usr/bin/mysql-fullbackup.sh
+    owner: root
+    group: wheel
+    mode: "u=rwx,g=rx,o=r"
