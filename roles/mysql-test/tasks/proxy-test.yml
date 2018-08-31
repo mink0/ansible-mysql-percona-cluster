@@ -19,14 +19,12 @@
     LOAD MYSQL USERS TO RUNTIME;"
   delegate_to: "{{ mysql_proxy_host }}"
   when: "'mysql-master' in group_names"
-  tags: test-proxy
 
 - name: write sample to proxy ({{ sample }})
   command: mysql -h127.0.0.1 -P{{mysql_proxy_port}} -u{{mysql_test_user.username}} -p{{mysql_test_user.password}} {{ mysql_test_db }} -e \
     "INSERT INTO {{ mysql_test_table }} values ('{{ sample }}')"
   delegate_to: "{{ mysql_proxy_host }}"
   when: "'mysql-master' in group_names"
-  tags: test-proxy
 
 - name: read sample ({{ sample }}) from every node
   command: mysql {{ mysql_test_db }} -NBe \
@@ -34,7 +32,7 @@
   register: result
   until: result.stdout == "1"
   retries: 10
-  tags: test-proxy
+  delay: 3
 
 # cleaning
 - name: remove mysql test user ({{ mysql_test_user.username }}) from mysql master
@@ -50,4 +48,3 @@
     LOAD MYSQL USERS TO RUNTIME;"
   delegate_to: "{{ mysql_proxy_host }}"
   when: "'mysql-master' in group_names"
-  tags: test-proxy

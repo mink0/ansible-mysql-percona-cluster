@@ -78,5 +78,5 @@
     mode: getslave
   ignore_errors: yes
   register: slave
-  retries: 5
   until: slave.Is_Slave and slave.Master_UUID != "" and slave.Slave_IO_Running
+  retries: 5

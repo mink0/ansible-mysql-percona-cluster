@@ -5,7 +5,7 @@
   when: "'mysql-master' in group_names"
   run_once: yes
 
-- name: write sample to master ({{ sample }})
+- name: write sample to master ({{ sample }}) node
   command: mysql {{ mysql_test_db }} -e \
     "INSERT INTO {{ mysql_test_table }} values ('{{ sample }}')"
   when: "'mysql-master' in group_names"
@@ -16,3 +16,4 @@
   register: result
   until: result.stdout == "1"
   retries: 10
+  delay: 3
