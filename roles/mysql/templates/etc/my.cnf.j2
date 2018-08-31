@@ -29,11 +29,11 @@ binlog-checksum = CRC32
 relay-log = relay-bin
 relay-log-index = relay-bin.index
 
-# enable orchestrator to promote master
+# enable orchestrator access to replication credentials
 # https://github.com/github/orchestrator/issues/323
 master_info_repository = TABLE
 
-{% if 'mysql-slave' in group_names %}
+{% if 'mysql-slave' in group_names and 'mysql-master' not in group_names %}
 ## Read-only slave
 read_only
 {% endif %}
