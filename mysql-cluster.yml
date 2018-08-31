@@ -1,6 +1,9 @@
 ---
 
-- hosts: all
+- hosts:
+    - mysql
+    - mysql-proxy
+    - mysql-orchestrator
   become: yes
   roles:
     - { role: ntp, tags: ['ntp'] }
