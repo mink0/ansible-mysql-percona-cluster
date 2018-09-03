@@ -55,3 +55,6 @@ mysql_repl_iplist: "{{ groups['mysql'] | map('extract', hostvars, ['ansible_defa
 mysql_repl_server_id: "{{ ansible_default_ipv4.address.split('.')[-1] }}"
 mysql_repl_expire_logs_days: 3
 mysql_repl_backup_path: /tmp/mysql-master-backup
+
+# adds virtual ip on the master
+mysql_repl_virtual_ip:

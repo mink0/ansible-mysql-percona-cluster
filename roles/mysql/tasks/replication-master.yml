@@ -31,6 +31,18 @@
     variable: read_only
     value: 0
 
+- name: master | enable virtual ip
+  when: mysql_repl_virtual_ip != ''
+  tags: virtual_ip
+  block:
+    - name: master | get ip interfaces list
+      command: ip -o addr
+      register: ip_list
+
+    - name: master | enable virtual ip {{ mysql_repl_virtual_ip }}
+      command: ip address add '{{ mysql_repl_virtual_ip }}/32' dev '{{ ansible_default_ipv4.interface }}'
+      when: ip_list.stdout is not search(mysql_repl_virtual_ip)
+
 - name: master | create full database backup from {{ mysql_repl_source }}
   command: /usr/bin/mysql-fullbackup.sh
   environment:

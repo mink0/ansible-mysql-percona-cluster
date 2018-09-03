@@ -27,3 +27,9 @@
     state: present
   delegate_to: "{{ mysql_repl_master_ip }}"
   when: mysql_repl_master_ip is defined
+
+# logrotate
+- name: setup logrotate
+  template:
+    src: logrotate.d/proxysql
+    dest: /etc/logrotate.d

@@ -80,3 +80,15 @@
   register: slave
   until: slave.Is_Slave and slave.Master_UUID != "" and slave.Slave_IO_Running
   retries: 5
+
+- name: slave | disable virtual ip
+  when: mysql_repl_virtual_ip != ''
+  tags: virtual_ip
+  block:
+    - name: slave | get ip interfaces list
+      command: ip -o addr
+      register: ip_list
+
+    - name: slave | disable virtual ip {{ mysql_repl_virtual_ip }}
+      command: ip address del '{{ mysql_repl_virtual_ip }}/32' dev '{{ ansible_default_ipv4.interface }}'
+      when: ip_list.stdout is search(mysql_repl_virtual_ip)

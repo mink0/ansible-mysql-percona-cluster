@@ -10,10 +10,7 @@ mysql_proxy_admin_web_port: 6080
 mysql_proxy_stats_user: stats
 mysql_proxy_stats_password:
 
-
 # proxy listener
-# mysql_proxy_user: proxysql
-# mysql_proxy_password: password
 mysql_proxy_host: 0.0.0.0
 mysql_proxy_port: 3306
 
