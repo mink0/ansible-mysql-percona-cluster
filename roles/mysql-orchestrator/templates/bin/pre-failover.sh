@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Setup sqlproxy:
+#   set old master to OFFLINE_SOFT state and wait for connections to graceful finsish
+#   during GRACE_TIMEOUT
+
 # variable exposed by Orchestrator
 old_master="$(getent hosts $ORC_FAILED_HOST | awk '{ print $1; exit }')"
 
@@ -10,7 +14,7 @@ GRACE_TIMEOUT=${GRACE_TIMEOUT:-3}
 proxysql_login="-h{{ mysql_proxy_host }} -u{{ mysql_proxy_admin_user }} \
   {{ '-p' if mysql_proxy_admin_password else '' }}{{ mysql_proxy_admin_password }} -P{{ mysql_proxy_admin_port }}"
 
-echo -e "\nstarting $0..\n"
+echo -e "\nStarting $0..\n"
 
 echo 'stop accepting new connections to old master, existing connections are still working'
 echo "set $old_master status=OFFLINE_SOFT"
@@ -32,6 +36,7 @@ while true; do
 
   if [[ "$connections" == "0" ]]; then
     echo "all connections to $old_master are gracefully drained"
+    echo -e "\nSuccess!"
     exit 0
   fi
 

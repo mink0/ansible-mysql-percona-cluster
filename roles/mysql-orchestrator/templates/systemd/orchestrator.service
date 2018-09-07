@@ -1,6 +1,6 @@
 [Unit]
 Description="MySQL Orchestrator: replication management and visualization"
-After=syslog.target network.target
+After=network.target
 
 [Service]
 Type=simple

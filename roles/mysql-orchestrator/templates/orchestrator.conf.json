@@ -25,19 +25,26 @@
   "RecoveryPeriodBlockSeconds": 3600
   {% endif %}
 
-  {% if mysql_proxy_host != '' %}
   ,
   "PreGracefulTakeoverProcesses": [
-    "echo 'Planned takeover about to take place on {failureCluster}. Master will switch to read_only.' &>> /usr/local/orchestrator/recovery.log"
+    "echo '> Starting manual takeover on {failureCluster}' &>> /usr/local/orchestrator/recovery.log"
   ],
   "PostGracefulTakeoverProcesses": [
-    "echo 'Planned takeover complete!' &>> /usr/local/orchestrator/recovery.log"
+    "echo '> Manual takeover complete!' &>> /usr/local/orchestrator/recovery.log"
   ],
   "PreFailoverProcesses": [
-    "/usr/local/orchestrator/bin/pre-failover.sh &>> /usr/local/orchestrator/recovery.log"
+    "echo '> Starting failover for {failureCluster}' &>> /usr/local/orchestrator/recovery.log"
+    {% if mysql_proxy_host != '' %}
+    , "/usr/local/orchestrator/bin/pre-failover.sh &>> /usr/local/orchestrator/recovery.log"
+    {% endif %}
   ],
   "PostFailoverProcesses": [
-    "/usr/local/orchestrator/bin/post-failover.sh &>> /usr/local/orchestrator/recovery.log"
+    "echo '> Failover complete!' &>> /usr/local/orchestrator/recovery.log"
+    {% if mysql_proxy_host != '' %}
+    , "/usr/local/orchestrator/bin/post-failover.sh &>> /usr/local/orchestrator/recovery.log"
+    {% endif %}
+    {% if mysql_repl_virtual_ip | ipaddr %}
+    , "/usr/local/orchestrator/bin/move-virtual-ip.sh &>> /usr/local/orchestrator/recovery.log"
+    {% endif %}
   ]
-  {% endif %}
 }

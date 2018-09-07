@@ -38,6 +38,13 @@
         - bin/pre-failover.sh
         - bin/post-failover.sh
 
+- name: setup virtual ip move script
+  template:
+    src: bin/move-virtual-ip.sh
+    dest: /usr/local/orchestrator/bin
+    mode: 0750
+  when: mysql_repl_virtual_ip | ipaddr
+
 - name: ensure orchestrator is started
   systemd:
     name: orchestrator

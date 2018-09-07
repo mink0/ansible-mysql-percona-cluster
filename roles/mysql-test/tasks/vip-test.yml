@@ -1,0 +1,20 @@
+---
+
+- set_fact:
+    sample: "vip-{{ mysql_test_data }}"
+  when: "'mysql-master' in group_names"
+  run_once: yes
+
+- name: write sample ({{ sample }}) to virtual ip node ({{ mysql_repl_virtual_ip }})
+  command: mysql {{ mysql_test_db }} -e \
+    "INSERT INTO {{ mysql_test_table }} values ('{{ sample }}')"
+  delegate_to: "{{ mysql_repl_virtual_ip }}"
+  when: "'mysql-master' in group_names"
+
+- name: read sample ({{ sample }}) from every node
+  command: mysql {{ mysql_test_db }} -NBe \
+    "SELECT count(data) FROM {{ mysql_test_table }} WHERE data='{{ sample }}'"
+  register: result
+  until: result.stdout == "1"
+  retries: "{{ mysql_test_retries }}"
+  delay: "{{ mysql_test_delay }}"
