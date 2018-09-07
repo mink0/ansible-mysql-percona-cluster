@@ -32,7 +32,7 @@
     value: 0
 
 - name: master | enable virtual ip
-  when: mysql_repl_virtual_ip != ''
+  when: mysql_repl_virtual_ip | ipaddr
   tags: virtual_ip
   block:
     - name: master | get ip interfaces list

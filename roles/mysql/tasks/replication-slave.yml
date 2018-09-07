@@ -82,7 +82,7 @@
   retries: 5
 
 - name: slave | disable virtual ip
-  when: mysql_repl_virtual_ip != ''
+  when: mysql_repl_virtual_ip | ipaddr
   tags: virtual_ip
   block:
     - name: slave | get ip interfaces list
