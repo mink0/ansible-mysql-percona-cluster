@@ -37,4 +37,4 @@ $ssh_new_master \
 echo "update arp cache.."
 ping -c1 $VIRTUAL_IP
 
-echo -e "\nSuccess: $VIRTUAL_IP is moved from $old_master to $new_master!"
+echo -e "\nSuccess: virtual ip $VIRTUAL_IP is moved from $old_master to $new_master"
