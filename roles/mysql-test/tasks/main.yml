@@ -14,8 +14,10 @@
   tags: cluster-test
 
 - include_tasks: proxy-test.yml
-  tags: proxy-test
   when: mysql_proxy_host != ''
+
+- include_tasks: vip-test.yml
+  when: mysql_repl_virtual_ip | ipaddr
 
 # cleaning
 - name: remove test db ({{ mysql_test_db }})

@@ -1,7 +1,8 @@
 ---
 
-- set_fact:
-    sample: "cluster-{{ ansible_date_time.iso8601_micro }}"
+- name: generate sample
+  set_fact:
+    sample: "cluster-{{ mysql_test_data }}"
   when: "'mysql-master' in group_names"
   run_once: yes
 
@@ -15,5 +16,5 @@
     "SELECT count(data) FROM {{ mysql_test_table }} WHERE data='{{ sample }}'"
   register: result
   until: result.stdout == "1"
-  retries: 10
-  delay: 3
+  retries: "{{ mysql_test_retries }}"
+  delay: "{{ mysql_test_delay }}"

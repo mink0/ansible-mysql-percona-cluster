@@ -1,7 +1,6 @@
 ---
 
 mysql_test_db: 'mysql_test'
-
 mysql_test_table: 'test'
 
 mysql_test_user:
@@ -9,7 +8,12 @@ mysql_test_user:
   password: mysql_test
   grants: "{{ mysql_test_db }}.*:ALL"
 
+mysql_test_retries: 10
+mysql_test_delay: 3
+
 mysql_proxy_host:
   "{{ hostvars[groups['mysql-proxy'][0]].ansible_default_ipv4.address if groups['mysql-proxy'] is defined else '' }}"
 
 mysql_proxy_port: 3306
+
+mysql_test_data: "{{ ansible_date_time.iso8601_micro }}"
